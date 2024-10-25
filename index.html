@@ -3,25 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Review Zoeker</title>
+    <title>Multi-Platform Review Zoeker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
         }
         #zoekFormulier {
             margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        #zoekTerm {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
         #resultaten {
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .review-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .platform-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .bol-com { background-color: #0000A4; color: white; }
+        .trustpilot { background-color: #00B67A; color: white; }
+        .google { background-color: #4285F4; color: white; }
+        .kieskeurig { background-color: #FF6B6B; color: white; }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .stars {
+            color: #ffd700;
+            font-size: 18px;
+        }
+        .filters {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Product Review Zoeker</h1>
+    <h1>Multi-Platform Review Zoeker</h1>
+    <div class="filters">
+        <div class="filter-checkbox">
+            <input type="checkbox" id="bolcom" checked>
+            <label for="bolcom">Bol.com</label>
+        </div>
+        <div class="filter-checkbox">
+            <input type="checkbox" id="trustpilot" checked>
+            <label for="trustpilot">Trustpilot</label>
+        </div>
+        <div class="filter-checkbox">
+            <input type="checkbox" id="google" checked>
+            <label for="google">Google Reviews</label>
+        </div>
+        <div class="filter-checkbox">
+            <input type="checkbox" id="kieskeurig" checked>
+            <label for="kieskeurig">Kieskeurig</label>
+        </div>
+    </div>
     <form id="zoekFormulier">
         <input type="text" id="zoekTerm" placeholder="Voer een productnaam in" required>
         <button type="submit">Zoek Reviews</button>
@@ -35,16 +110,111 @@
             zoekReviews(zoekTerm);
         });
 
-        function zoekReviews(zoekTerm) {
-            // Hier zou je normaal gesproken een API-aanroep doen naar een backend-service
-            // Voor dit voorbeeld simuleren we de resultaten
-            const nepResultaten = [
-                { product: zoekTerm, rating: 4.5, review: "Geweldig product, zeer tevreden!" },
-                { product: zoekTerm, rating: 3.8, review: "Goed, maar kan beter." },
-                { product: zoekTerm, rating: 5.0, review: "Absoluut fantastisch, een aanrader!" }
-            ];
+        function getSelectedPlatforms() {
+            return {
+                bolcom: document.getElementById('bolcom').checked,
+                trustpilot: document.getElementById('trustpilot').checked,
+                google: document.getElementById('google').checked,
+                kieskeurig: document.getElementById('kieskeurig').checked
+            };
+        }
 
-            toonResultaten(nepResultaten);
+        function genereerSterren(rating) {
+            const voleSterren = Math.floor(rating);
+            const heeftHalveSter = rating % 1 >= 0.5;
+            let sterren = '★'.repeat(voleSterren);
+            if (heeftHalveSter) sterren += '½';
+            sterren += '☆'.repeat(5 - Math.ceil(rating));
+            return sterren;
+        }
+
+        async function zoekReviews(zoekTerm) {
+            const resultatenDiv = document.getElementById('resultaten');
+            resultatenDiv.innerHTML = '<div class="loading">Reviews zoeken...</div>';
+
+            const platforms = getSelectedPlatforms();
+            const reviews = [];
+
+            // Simulatie van API calls naar verschillende platforms
+            if (platforms.bolcom) {
+                reviews.push(...await zoekBolComReviews(zoekTerm));
+            }
+            if (platforms.trustpilot) {
+                reviews.push(...await zoekTrustpilotReviews(zoekTerm));
+            }
+            if (platforms.google) {
+                reviews.push(...await zoekGoogleReviews(zoekTerm));
+            }
+            if (platforms.kieskeurig) {
+                reviews.push(...await zoekKieskeurigReviews(zoekTerm));
+            }
+
+            toonResultaten(reviews);
+        }
+
+        // Gesimuleerde API calls
+        async function zoekBolComReviews(zoekTerm) {
+            await new Promise(resolve => setTimeout(resolve, 700)); // Simuleer netwerk vertraging
+            return [
+                {
+                    platform: 'bol-com',
+                    product: zoekTerm,
+                    rating: 4.5,
+                    review: "Super product! Snelle levering en werkt perfect.",
+                    datum: "2024-03-15",
+                    verificatie: "Geverifieerde aankoop"
+                },
+                {
+                    platform: 'bol-com',
+                    product: zoekTerm,
+                    rating: 4.0,
+                    review: "Goede kwaliteit voor deze prijs. Aanrader!",
+                    datum: "2024-03-10",
+                    verificatie: "Geverifieerde aankoop"
+                }
+            ];
+        }
+
+        async function zoekTrustpilotReviews(zoekTerm) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            return [
+                {
+                    platform: 'trustpilot',
+                    product: zoekTerm,
+                    rating: 5.0,
+                    review: "Uitstekende service en product kwaliteit.",
+                    datum: "2024-03-14",
+                    verificatie: "Geverifieerde review"
+                }
+            ];
+        }
+
+        async function zoekGoogleReviews(zoekTerm) {
+            await new Promise(resolve => setTimeout(resolve, 600));
+            return [
+                {
+                    platform: 'google',
+                    product: zoekTerm,
+                    rating: 4.2,
+                    review: "Prettige ervaring met dit product.",
+                    datum: "2024-03-12",
+                    verificatie: "Google gebruiker"
+                }
+            ];
+        }
+
+        async function zoekKieskeurigReviews(zoekTerm) {
+            await new Promise(resolve => setTimeout(resolve, 750));
+            return [
+                {
+                    platform: 'kieskeurig',
+                    product: zoekTerm,
+                    rating: 4.8,
+                    review: "Zeer tevreden met de aankoop. Goede prijs-kwaliteitverhouding.",
+                    datum: "2024-03-13",
+                    verificatie: "Expert review"
+                }
+            ];
         }
 
         function toonResultaten(resultaten) {
@@ -58,11 +228,15 @@
 
             resultaten.forEach(result => {
                 const reviewElement = document.createElement('div');
+                reviewElement.className = 'review-card';
                 reviewElement.innerHTML = `
+                    <span class="platform-badge ${result.platform}">${result.platform.replace('-', '.')}</span>
                     <h3>${result.product}</h3>
-                    <p>Beoordeling: ${result.rating}/5</p>
+                    <div class="stars">${genereerSterren(result.rating)}</div>
+                    <p><strong>${result.rating}/5</strong></p>
                     <p>${result.review}</p>
-                    <hr>
+                    <small>Datum: ${result.datum}</small><br>
+                    <small>${result.verificatie}</small>
                 `;
                 resultatenDiv.appendChild(reviewElement);
             });
